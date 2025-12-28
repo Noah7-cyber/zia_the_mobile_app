@@ -2,7 +2,7 @@
   "expo": {
     "name": "Zia Invoice",
     "slug": "zia-invoice-mobile",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -19,7 +19,8 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.geniusworks.ziainvoicemobile"
+      "package": "com.geniusworks.ziainvoicemobile",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"

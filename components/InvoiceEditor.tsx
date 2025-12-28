@@ -173,6 +173,48 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
         </View>
       </View>
 
+      {/* From (Sender) Info */}
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionTitleRow}>
+          <TagIcon size={14} color="#64748b" />
+          <Text style={styles.sectionLabel}>From (Your Business)</Text>
+        </View>
+        <TextInput 
+          placeholder="Business Name" 
+          style={[styles.input, { marginBottom: 10 }]} 
+          value={data.senderName || ''} 
+          onChangeText={(val) => updateField('senderName', val)} 
+        />
+        <TextInput 
+          placeholder="Address, Phone, Email..." 
+          style={[styles.input, { height: 60, textAlignVertical: 'top' }]} 
+          multiline 
+          value={data.senderDetails || ''} 
+          onChangeText={(val) => updateField('senderDetails', val)} 
+        />
+      </View>
+
+      {/* To (Client) Info */}
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionTitleRow}>
+          <TagIcon size={14} color="#64748b" />
+          <Text style={styles.sectionLabel}>Bill To (Client)</Text>
+        </View>
+        <TextInput 
+          placeholder="Client Name" 
+          style={[styles.input, { marginBottom: 10 }]} 
+          value={data.clientName || ''} 
+          onChangeText={(val) => updateField('clientName', val)} 
+        />
+        <TextInput 
+          placeholder="Client Address / Details" 
+          style={[styles.input, { height: 60, textAlignVertical: 'top' }]} 
+          multiline 
+          value={data.clientDetails || ''} 
+          onChangeText={(val) => updateField('clientDetails', val)} 
+        />
+      </View>
+
       {/* Branding */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionTitleRow}>

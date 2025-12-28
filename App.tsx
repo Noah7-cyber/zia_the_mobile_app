@@ -19,7 +19,8 @@ import {
   Share2 as ShareIcon, 
   Box as BoxIcon, 
   Eye as EyeIcon, 
-  Plus as PlusIcon 
+  Plus as PlusIcon,
+  Save as SaveIcon
 } from 'lucide-react-native';
 
 // Standard TS imports remain the same
@@ -256,6 +257,11 @@ export default function App() {
     return true;
   };
 
+  const handleSaveOnly = () => {
+    handleSaveRecord();
+    Alert.alert("Success", "Invoice saved to history.");
+  };
+
   const handleSaveAndShare = async () => {
     handleSaveRecord();
     try {
@@ -306,11 +312,11 @@ export default function App() {
              <PlusIcon size={20} color="#64748b" />
            </TouchableOpacity>
            <TouchableOpacity 
-             onPress={handleSaveAndShare} 
+             onPress={handleSaveOnly} 
              style={[styles.shareBtn, { backgroundColor: invoiceData.themeColor }]}
             >
-             <ShareIcon size={16} color="white" />
-             <Text style={styles.shareBtnText}>Share</Text>
+             <SaveIcon size={16} color="white" />
+             <Text style={styles.shareBtnText}>Save</Text>
            </TouchableOpacity>
         </View>
       </View>
