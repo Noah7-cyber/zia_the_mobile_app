@@ -157,7 +157,7 @@ export const InvoicePreview: React.FC<Props> = ({ data }) => {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9' },
+  container: { flex: 1, backgroundColor: '#f1f5f9', paddingTop: 60 },
   card: {
     backgroundColor: 'white',
     margin: 12,

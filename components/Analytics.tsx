@@ -199,7 +199,7 @@ export const Analytics: React.FC<Props> = ({ history, themeColor, onEditInvoice,
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
+  container: { flex: 1, backgroundColor: '#f8fafc', paddingTop: 60 },
   subTabNav: {
     flexDirection: 'row',
     backgroundColor: '#f1f5f9',

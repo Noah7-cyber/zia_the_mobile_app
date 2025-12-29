@@ -226,7 +226,7 @@ export const Inventory: React.FC<Props> = ({ inventory, setInventory, themeColor
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc', padding: 16 },
+  container: { flex: 1, backgroundColor: '#f8fafc', padding: 16, paddingTop: 60 },
   headerCard: {
     padding: 20,
     borderRadius: 20,

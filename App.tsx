@@ -382,6 +382,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? 45 : 0,
   },
   nav: {
     height: 60,

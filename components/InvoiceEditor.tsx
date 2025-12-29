@@ -268,12 +268,38 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
               <NumericInput placeholder="Qty" style={[styles.input, { flex: 1 }]} value={item.quantity || 0} onChange={(v: number) => updateItem(item.id, 'quantity', v)} />
               <NumericInput placeholder="Price" style={[styles.input, { flex: 2 }]} value={item.price || 0} onChange={(v: number) => updateItem(item.id, 'price', v)} />
             </View>
+            <View style={[styles.row, { marginTop: 8, alignItems: 'center' }]}>
+              <View style={{ flex: 2 }}>
+                <Text style={styles.inputLabel}>Discount</Text>
+                <NumericInput 
+                  placeholder="0" 
+                  style={styles.input} 
+                  value={item.discount || 0} 
+                  onChange={(v: number) => updateItem(item.id, 'discount', v)} 
+                />
+              </View>
+              <View style={{ flex: 1.5, marginLeft: 8 }}>
+                <Text style={styles.inputLabel}>Type</Text>
+                <TouchableOpacity 
+                  style={[styles.input, { alignItems: 'center', backgroundColor: '#f1f5f9' }]} 
+                  onPress={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percentage' : 'fixed')}
+                >
+                  <Text style={{ fontWeight: 'bold' }}>{item.discountType === 'fixed' ? data.currency || '₦' : '%'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         ))}
 
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>{data.currency || '₦'}{data.items.reduce((sum, item) => sum + ((item.quantity || 0) * (item.price || 0)), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+          <Text style={styles.totalValue}>{data.currency || '₦'}{data.items.reduce((sum, item) => {
+                const sub = (item.quantity || 0) * (item.price || 0);
+                const discount = item.discountType === 'percentage' 
+                  ? sub * ((item.discount || 0) / 100) 
+                  : (item.discount || 0);
+                return sum + (sub - discount);
+              }, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
         </View>
       </View>
 
@@ -315,7 +341,7 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc', padding: 16 },
+  container: { flex: 1, backgroundColor: '#f8fafc', padding: 16, paddingTop: 60 },
   sectionCard: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 16, elevation: 1 },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 15 },
   sectionLabel: { fontSize: 10, fontWeight: '900', color: '#64748b', textTransform: 'uppercase' },
