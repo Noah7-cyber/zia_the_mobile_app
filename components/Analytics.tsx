@@ -139,7 +139,12 @@ export const Analytics: React.FC<Props> = ({ history, themeColor, onEditInvoice,
                     <Text style={styles.cardSubText}>#{item.invoiceNumber} • {item.date}</Text>
                   </View>
                   <View style={styles.cardActions}>
-                    <Text style={styles.cardPrice}>{displayCurrency}{item.totalAmount.toLocaleString()}</Text>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={styles.cardPrice}>{displayCurrency}{item.totalAmount.toLocaleString()}</Text>
+                      {!isPaid && (
+                        <Text style={styles.balanceDueText}>Due: {displayCurrency}{balance.toLocaleString()}</Text>
+                      )}
+                    </View>
                     <View style={styles.iconGroup}>
                       <TouchableOpacity onPress={() => onEditInvoice(item)} style={styles.iconBtn}>
                         <EditIcon size={18} color="#94a3b8" />
@@ -265,6 +270,7 @@ const styles = StyleSheet.create({
   cardSubText: { fontSize: 10, color: '#94a3b8', fontWeight: '600' },
   cardActions: { alignItems: 'flex-end', justifyContent: 'space-between' },
   cardPrice: { fontSize: 14, fontWeight: '900', color: '#0f172a' },
+  balanceDueText: { fontSize: 11, fontWeight: '700', color: '#ef4444', marginTop: 2 },
   iconGroup: { flexDirection: 'row', gap: 12 },
   iconBtn: { padding: 4 },
 
