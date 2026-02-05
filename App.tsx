@@ -35,91 +35,181 @@ import { Inventory } from './components/Inventory';
 
 // HTML Generator for PDF (Offline compatible)
 const generateInvoiceHTML = (data: InvoiceData) => {
-  const total = data.items.reduce((sum, item) => sum + ((item.quantity || 0) * (item.price || 0)), 0);
+  const subtotal = data.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+  const totalDiscount = data.items.reduce((acc, item) => {
+    if (item.discountType === 'percentage') {
+      return acc + (item.price * item.quantity * (item.discount / 100));
+    }
+    return acc + (item.discount || 0);
+  }, 0);
+
+  const taxableAmount = Math.max(0, subtotal - totalDiscount);
+  const taxAmount = taxableAmount * ((data.taxRate || 0) / 100);
+  const grandTotal = taxableAmount + taxAmount;
+  const balanceDue = Math.max(0, grandTotal - (data.amountPaid || 0));
+
+  let status = "Unpaid";
+  let statusColor = "#fef2f2";
+  let statusTextColor = "#ef4444";
+
+  if (data.amountPaid > 0) {
+    if (balanceDue <= 0) {
+      status = "Paid in Full";
+      statusColor = "#ecfdf5";
+      statusTextColor = "#10b981";
+    } else {
+      status = "Deposit Received";
+      statusColor = "#fffbeb";
+      statusTextColor = "#d97706";
+    }
+  }
   
   return `
     <html>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
         <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 800px; margin: 0 auto; }
-          .header { display: flex; justify-content: space-between; margin-bottom: 50px; border-bottom: 2px solid ${data.themeColor || '#eee'}; padding-bottom: 20px; }
-          .logo { max-width: 120px; max-height: 120px; object-fit: contain; }
-          .title { font-size: 32px; font-weight: bold; color: ${data.themeColor || '#333'}; margin-bottom: 5px; }
-          .subtitle { color: #666; font-size: 14px; }
-          .info-grid { display: flex; justify-content: space-between; margin-bottom: 40px; }
-          .info-col { flex: 1; }
-          .info-label { font-size: 10px; text-transform: uppercase; color: #999; font-weight: bold; margin-bottom: 5px; }
-          .info-val { font-size: 14px; font-weight: 500; margin-bottom: 15px; }
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 800px; margin: 0 auto; background-color: white; }
+          .accent-bar { height: 6px; background-color: ${data.themeColor || '#1e293b'}; width: 100%; border-radius: 4px 4px 0 0; margin-bottom: 30px; }
+          .header { display: flex; justify-content: space-between; margin-bottom: 50px; }
+          .logo { max-width: 100px; max-height: 80px; object-fit: contain; margin-bottom: 10px; }
+          .logo-placeholder { width: 50px; height: 50px; background-color: ${data.themeColor || '#1e293b'}; border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+          .title { font-size: 32px; font-weight: 900; letter-spacing: -1px; color: ${data.themeColor || '#333'}; margin-bottom: 5px; }
+          .invoice-meta { display: flex; align-items: center; gap: 10px; }
+          .invoice-number { color: #94a3b8; font-weight: bold; font-size: 14px; }
+          .status-badge { background-color: ${statusColor}; color: ${statusTextColor}; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+
+          .sender-details { text-align: right; font-size: 11px; color: #64748b; line-height: 1.5; }
+          .sender-name { font-weight: bold; font-size: 14px; color: #1e293b; margin-bottom: 4px; }
+
+          .billing-grid { display: flex; justify-content: space-between; margin-bottom: 40px; }
+          .bill-label { font-size: 10px; font-weight: 900; color: #cbd5e1; margin-bottom: 5px; text-transform: uppercase; }
+          .client-name { font-size: 16px; font-weight: bold; color: #1e293b; }
+          .client-details { font-size: 12px; color: #64748b; margin-top: 2px; }
+          .date-val { font-size: 13px; font-weight: 700; color: #1e293b; }
+
           table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-          th { text-align: left; border-bottom: 2px solid #eee; padding: 12px 8px; color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-          td { border-bottom: 1px solid #f5f5f5; padding: 12px 8px; font-size: 14px; }
-          .total-section { display: flex; justify-content: flex-end; margin-top: 20px; }
-          .total-box { text-align: right; min-width: 200px; }
-          .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
-          .grand-total { font-size: 20px; font-weight: bold; color: ${data.themeColor || '#333'}; border-top: 2px solid #eee; padding-top: 10px; margin-top: 5px; }
+          th { text-align: left; border-bottom: 2px solid #f1f5f9; padding: 12px 0; color: #94a3b8; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+          td { border-bottom: 1px solid #f8fafc; padding: 12px 0; font-size: 13px; color: #334155; }
+          .td-desc { font-weight: 700; }
+          .td-qty { text-align: center; color: #64748b; }
+          .td-total { text-align: right; font-weight: bold; color: #1e293b; }
+
+          .total-section { display: flex; flex-direction: column; align-items: flex-end; margin-top: 20px; }
+          .total-row { display: flex; justify-content: space-between; width: 250px; padding: 4px 0; }
+          .total-label { font-size: 12px; color: #94a3b8; }
+          .total-val { font-size: 12px; font-weight: bold; color: #334155; }
+          .discount-row { color: #ef4444; }
+          .grand-total { border-top: 1px solid #f1f5f9; margin-top: 8px; padding-top: 8px; }
+          .grand-total .total-label { font-size: 14px; font-weight: bold; color: #1e293b; }
+          .grand-total .total-val { font-size: 16px; font-weight: 900; color: #1e293b; }
+
+          .balance-box { background-color: #f8fafc; padding: 12px; border-radius: 12px; width: 250px; margin-top: 20px; }
+          .balance-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+          .paid-label { font-size: 10px; font-weight: bold; color: #10b981; text-transform: uppercase; }
+          .paid-val { font-size: 11px; font-weight: bold; color: #10b981; }
+          .due-row { border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 5px; }
+          .due-label { font-size: 12px; font-weight: 900; color: #1e293b; text-transform: uppercase; }
+          .due-val { font-size: 18px; font-weight: 900; color: ${data.themeColor || '#333'}; }
+
           .signature { margin-top: 60px; text-align: right; }
-          .sig-img { max-width: 150px; height: auto; }
-          .sig-line { border-top: 1px solid #ccc; width: 200px; display: inline-block; margin-top: 10px; }
+          .sig-img { width: 120px; height: 60px; object-fit: contain; }
+          .sig-line { border-top: 1px solid #cbd5e1; width: 150px; display: inline-block; margin-top: 5px; }
+          .sig-sub { font-size: 9px; color: #94a3b8; font-weight: bold; margin-top: 4px; }
         </style>
       </head>
       <body>
+        <div class="accent-bar"></div>
         <div class="header">
           <div>
+            ${data.logo ? `<img src="${data.logo}" class="logo" />` : `
+              <div class="logo-placeholder">${data.senderName.charAt(0) || 'Z'}</div>
+            `}
             <div class="title">INVOICE</div>
-            <div class="subtitle">#${data.invoiceNumber || 'DRAFT'}</div>
+            <div class="invoice-meta">
+              <span class="invoice-number">#${data.invoiceNumber || 'DRAFT'}</span>
+              <span class="status-badge">${status}</span>
+            </div>
           </div>
-          ${data.logo ? `<img src="${data.logo}" class="logo" />` : ''}
+          <div style="text-align: right;">
+             <div class="sender-name">${data.senderName}</div>
+             <div class="sender-details">${data.senderDetails.replace(/\n/g, '<br>')}</div>
+          </div>
         </div>
         
-        <div class="info-grid">
-          <div class="info-col">
-            <div class="info-label">Date</div>
-            <div class="info-val">${data.date || new Date().toLocaleDateString()}</div>
+        <div class="billing-grid">
+          <div>
+            <div class="bill-label">BILL TO</div>
+            <div class="client-name">${data.clientName || 'Valued Client'}</div>
+            <div class="client-details">${(data.clientDetails || "No address provided").replace(/\n/g, '<br>')}</div>
           </div>
-          <div class="info-col" style="text-align: right;">
-            <div class="info-label">Amount Due</div>
-            <div class="info-val" style="font-size: 18px; font-weight: bold;">${data.currency || '₦'}${total.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+          <div style="text-align: right;">
+            <div class="bill-label">DATE ISSUED</div>
+            <div class="date-val">${data.date || new Date().toLocaleDateString()}</div>
           </div>
         </div>
 
         <table>
           <thead>
             <tr>
-              <th style="width: 50%">Description</th>
-              <th style="text-align: center">Qty</th>
-              <th style="text-align: right">Price</th>
-              <th style="text-align: right">Total</th>
+              <th style="width: 50%">DESCRIPTION</th>
+              <th style="text-align: center">QTY</th>
+              <th style="text-align: right">TOTAL</th>
             </tr>
           </thead>
           <tbody>
-            ${data.items.map(item => `
+            ${data.items.map(item => {
+              const itemTotal = item.price * item.quantity;
+              const disc = item.discountType === 'percentage'
+                ? itemTotal * (item.discount / 100)
+                : (item.discount || 0);
+              const finalTotal = Math.max(0, itemTotal - disc);
+
+              return `
               <tr>
-                <td>${item.description}</td>
-                <td style="text-align: center">${item.quantity}</td>
-                <td style="text-align: right">${data.currency || '₦'}${item.price}</td>
-                <td style="text-align: right">${data.currency || '₦'}${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</td>
+                <td>
+                  <div class="td-desc">${item.description}</div>
+                  <div style="font-size: 10px; color: #94a3b8;">${data.currency}${item.price.toLocaleString()} each</div>
+                </td>
+                <td class="td-qty">${item.quantity}</td>
+                <td class="td-total">${data.currency}${finalTotal.toLocaleString()}</td>
               </tr>
-            `).join('')}
+            `}).join('')}
           </tbody>
         </table>
 
         <div class="total-section">
-          <div class="total-box">
-            <div class="total-row grand-total">
-              <span>Total</span>
-              <span>${data.currency || '₦'}${total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-            </div>
-            ${data.amountPaid ? `
-            <div class="total-row" style="color: #10b981; font-weight: bold; margin-top: 8px;">
-              <span>Paid</span>
-              <span>-${data.currency || '₦'}${data.amountPaid.toLocaleString()}</span>
-            </div>
-            <div class="total-row" style="color: #64748b; font-size: 12px;">
-              <span>Balance</span>
-              <span>${data.currency || '₦'}${Math.max(0, total - data.amountPaid).toLocaleString()}</span>
-            </div>
-            ` : ''}
+          <div class="total-row">
+            <span class="total-label">Subtotal</span>
+            <span class="total-val">${data.currency}${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+          </div>
+          ${totalDiscount > 0 ? `
+          <div class="total-row discount-row">
+            <span class="total-label" style="color: #ef4444;">Savings</span>
+            <span class="total-val" style="color: #ef4444;">-${data.currency}${totalDiscount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+          </div>
+          ` : ''}
+          ${(data.taxRate || 0) > 0 ? `
+          <div class="total-row">
+            <span class="total-label">Tax (${data.taxRate}%)</span>
+            <span class="total-val">${data.currency}${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+          </div>
+          ` : ''}
+          <div class="total-row grand-total">
+            <span class="total-label">Grand Total</span>
+            <span class="total-val">${data.currency}${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+          </div>
+
+          <div class="balance-box">
+             <div class="balance-row">
+               <span class="paid-label">Payment Received</span>
+               <span class="paid-val">${data.currency}${(data.amountPaid || 0).toLocaleString()}</span>
+             </div>
+             <div class="balance-row due-row">
+               <span class="due-label">Balance Due</span>
+               <span class="due-val">${data.currency}${balanceDue.toLocaleString()}</span>
+             </div>
           </div>
         </div>
 
@@ -127,7 +217,7 @@ const generateInvoiceHTML = (data: InvoiceData) => {
           <div class="signature">
             <img src="${data.signature}" class="sig-img" /><br>
             <div class="sig-line"></div><br>
-            <small style="color: #999;">Authorized Signature</small>
+            <div class="sig-sub">Authorized Signature</div>
           </div>
         ` : ''}
       </body>
@@ -140,21 +230,24 @@ export default function App() {
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(DEFAULT_INVOICE);
   const [history, setHistory] = useState<SavedInvoice[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [businessProfile, setBusinessProfile] = useState<Partial<InvoiceData>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   // Load Data on Start (Replacing synchronous localStorage)
   useEffect(() => {
     const loadPersistedData = async () => {
       try {
-        const [savedData, savedHistory, savedInventory] = await Promise.all([
+        const [savedData, savedHistory, savedInventory, savedProfile] = await Promise.all([
           AsyncStorage.getItem('invoiceData'),
           AsyncStorage.getItem('invoiceHistory'),
           AsyncStorage.getItem('inventory'),
+          AsyncStorage.getItem('businessProfile'),
         ]);
 
         if (savedData) setInvoiceData(JSON.parse(savedData));
         if (savedHistory) setHistory(JSON.parse(savedHistory));
         if (savedInventory) setInventory(JSON.parse(savedInventory));
+        if (savedProfile) setBusinessProfile(JSON.parse(savedProfile));
       } catch (e) {
         console.error('Failed to load data', e);
       } finally {
@@ -198,15 +291,17 @@ export default function App() {
   const handleNewInvoice = () => {
     const startNew = () => {
       const nextNumber = getNextInvoiceNumber(history);
+      const profileToUse = businessProfile.senderName ? businessProfile : invoiceData;
+
       setInvoiceData({
         ...DEFAULT_INVOICE,
         invoiceNumber: nextNumber,
-        senderName: invoiceData.senderName,
-        senderDetails: invoiceData.senderDetails,
-        currency: invoiceData.currency,
-        themeColor: invoiceData.themeColor,
-        logo: invoiceData.logo,
-        signature: invoiceData.signature,
+        senderName: profileToUse.senderName || DEFAULT_INVOICE.senderName,
+        senderDetails: profileToUse.senderDetails || DEFAULT_INVOICE.senderDetails,
+        currency: profileToUse.currency || DEFAULT_INVOICE.currency,
+        themeColor: profileToUse.themeColor || DEFAULT_INVOICE.themeColor,
+        logo: profileToUse.logo || DEFAULT_INVOICE.logo,
+        signature: profileToUse.signature || DEFAULT_INVOICE.signature,
         date: new Date().toISOString().split('T')[0],
       });
       setActiveTab('edit');
@@ -245,6 +340,18 @@ export default function App() {
       savedAt: new Date().toISOString(),
       totalAmount: total
     };
+
+    // Update Business Profile
+    const newProfile = {
+       senderName: invoiceData.senderName,
+       senderDetails: invoiceData.senderDetails,
+       currency: invoiceData.currency,
+       themeColor: invoiceData.themeColor,
+       logo: invoiceData.logo,
+       signature: invoiceData.signature,
+    };
+    setBusinessProfile(newProfile);
+    AsyncStorage.setItem('businessProfile', JSON.stringify(newProfile));
 
     const existingIndex = history.findIndex(h => h.invoiceNumber === invoiceData.invoiceNumber);
     if (existingIndex > -1) {
@@ -474,4 +581,4 @@ const styles = StyleSheet.create({
   },
   pdfBtn: { flexDirection: 'row', padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 20, marginBottom: 40 },
   pdfBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
-});
+});// test change

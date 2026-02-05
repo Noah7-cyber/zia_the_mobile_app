@@ -171,6 +171,14 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
             <TextInput style={styles.input} value={data.date || ''} onChangeText={(val) => updateField('date', val)} />
           </View>
         </View>
+
+        <Text style={styles.inputLabel}>Tax Rate (%)</Text>
+        <NumericInput
+          style={styles.input}
+          value={data.taxRate || 0}
+          onChange={(v: number) => updateField('taxRate', v)}
+          placeholder="0"
+        />
       </View>
 
       {/* From (Sender) Info */}
@@ -288,18 +296,65 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
                 </TouchableOpacity>
               </View>
             </View>
+
+            <View style={styles.itemTotalRow}>
+               <Text style={styles.itemTotalLabel}>Item Total:</Text>
+               <Text style={styles.itemTotalValue}>
+                 {data.currency || '₦'}
+                 {(() => {
+                    const sub = (item.quantity || 0) * (item.price || 0);
+                    const discount = item.discountType === 'percentage'
+                      ? sub * ((item.discount || 0) / 100)
+                      : (item.discount || 0);
+                    return (sub - discount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                 })()}
+               </Text>
+            </View>
           </View>
         ))}
 
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>{data.currency || '₦'}{data.items.reduce((sum, item) => {
-                const sub = (item.quantity || 0) * (item.price || 0);
-                const discount = item.discountType === 'percentage' 
-                  ? sub * ((item.discount || 0) / 100) 
-                  : (item.discount || 0);
-                return sum + (sub - discount);
-              }, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal</Text>
+            <Text style={styles.summaryValue}>{data.currency || '₦'}{data.items.reduce((sum, item) => {
+                  const sub = (item.quantity || 0) * (item.price || 0);
+                  const discount = item.discountType === 'percentage'
+                    ? sub * ((item.discount || 0) / 100)
+                    : (item.discount || 0);
+                  return sum + (sub - discount);
+                }, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+          </View>
+
+          {(data.taxRate || 0) > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Tax ({data.taxRate}%)</Text>
+              <Text style={styles.summaryValue}>{data.currency || '₦'}{(() => {
+                 const subtotal = data.items.reduce((sum, item) => {
+                    const sub = (item.quantity || 0) * (item.price || 0);
+                    const discount = item.discountType === 'percentage'
+                      ? sub * ((item.discount || 0) / 100)
+                      : (item.discount || 0);
+                    return sum + (sub - discount);
+                 }, 0);
+                 return (subtotal * (data.taxRate / 100)).toLocaleString(undefined, { minimumFractionDigits: 2 });
+              })()}</Text>
+            </View>
+          )}
+
+          <View style={[styles.summaryRow, styles.grandTotalRow]}>
+            <Text style={styles.grandTotalLabel}>Grand Total</Text>
+            <Text style={styles.grandTotalValue}>{data.currency || '₦'}{(() => {
+                const subtotal = data.items.reduce((sum, item) => {
+                    const sub = (item.quantity || 0) * (item.price || 0);
+                    const discount = item.discountType === 'percentage'
+                      ? sub * ((item.discount || 0) / 100)
+                      : (item.discount || 0);
+                    return sum + (sub - discount);
+                }, 0);
+                const tax = subtotal * (data.taxRate / 100);
+                return (subtotal + tax).toLocaleString(undefined, { minimumFractionDigits: 2 });
+            })()}</Text>
+          </View>
         </View>
       </View>
 
@@ -379,7 +434,14 @@ const styles = StyleSheet.create({
   signaturePreviewContainer: { alignItems: 'center' },
   signatureImage: { width: '100%', height: 100, backgroundColor: 'white', borderRadius: 8 },
   reSignBtn: { marginTop: 8 },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#e2e8f0' },
-  totalLabel: { fontSize: 16, fontWeight: 'bold', color: '#64748b' },
-  totalValue: { fontSize: 20, fontWeight: '900', color: '#0f172a' }
+  itemTotalRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
+  itemTotalLabel: { fontSize: 11, fontWeight: 'bold', color: '#94a3b8', marginRight: 8 },
+  itemTotalValue: { fontSize: 14, fontWeight: '900', color: '#334155' },
+  summaryContainer: { marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#e2e8f0' },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  summaryLabel: { fontSize: 12, fontWeight: '600', color: '#64748b' },
+  summaryValue: { fontSize: 12, fontWeight: 'bold', color: '#334155' },
+  grandTotalRow: { marginTop: 4, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
+  grandTotalLabel: { fontSize: 16, fontWeight: 'bold', color: '#0f172a' },
+  grandTotalValue: { fontSize: 20, fontWeight: '900', color: '#0f172a' }
 });
