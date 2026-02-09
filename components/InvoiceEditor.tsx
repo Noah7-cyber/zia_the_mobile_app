@@ -172,13 +172,6 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>Tax Rate (%)</Text>
-        <NumericInput
-          style={styles.input}
-          value={data.taxRate || 0}
-          onChange={(v: number) => updateField('taxRate', v)}
-          placeholder="0"
-        />
       </View>
 
       {/* From (Sender) Info */}
@@ -325,22 +318,6 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
                 }, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
           </View>
 
-          {(data.taxRate || 0) > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax ({data.taxRate}%)</Text>
-              <Text style={styles.summaryValue}>{data.currency || '₦'}{(() => {
-                 const subtotal = data.items.reduce((sum, item) => {
-                    const sub = (item.quantity || 0) * (item.price || 0);
-                    const discount = item.discountType === 'percentage'
-                      ? sub * ((item.discount || 0) / 100)
-                      : (item.discount || 0);
-                    return sum + (sub - discount);
-                 }, 0);
-                 return (subtotal * (data.taxRate / 100)).toLocaleString(undefined, { minimumFractionDigits: 2 });
-              })()}</Text>
-            </View>
-          )}
-
           <View style={[styles.summaryRow, styles.grandTotalRow]}>
             <Text style={styles.grandTotalLabel}>Grand Total</Text>
             <Text style={styles.grandTotalValue}>{data.currency || '₦'}{(() => {
@@ -351,8 +328,7 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
                       : (item.discount || 0);
                     return sum + (sub - discount);
                 }, 0);
-                const tax = subtotal * (data.taxRate / 100);
-                return (subtotal + tax).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                return subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
             })()}</Text>
           </View>
         </View>

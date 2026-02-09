@@ -44,9 +44,7 @@ const generateInvoiceHTML = (data: InvoiceData) => {
     return acc + (item.discount || 0);
   }, 0);
 
-  const taxableAmount = Math.max(0, subtotal - totalDiscount);
-  const taxAmount = taxableAmount * ((data.taxRate || 0) / 100);
-  const grandTotal = taxableAmount + taxAmount;
+  const grandTotal = Math.max(0, subtotal - totalDiscount);
   const balanceDue = Math.max(0, grandTotal - (data.amountPaid || 0));
 
   let status = "Unpaid";
@@ -68,55 +66,55 @@ const generateInvoiceHTML = (data: InvoiceData) => {
   return `
     <html>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
         <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 800px; margin: 0 auto; background-color: white; }
-          .accent-bar { height: 6px; background-color: ${data.themeColor || '#1e293b'}; width: 100%; border-radius: 4px 4px 0 0; margin-bottom: 30px; }
+          @page { size: A4; margin: 0; }
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; width: 794px; margin: 0 auto; background-color: white; font-size: 14px; }
+          .accent-bar { height: 8px; background-color: ${data.themeColor || '#1e293b'}; width: 100%; border-radius: 4px 4px 0 0; margin-bottom: 30px; }
           .header { display: flex; justify-content: space-between; margin-bottom: 50px; }
           .logo { max-width: 100px; max-height: 80px; object-fit: contain; margin-bottom: 10px; }
           .logo-placeholder { width: 50px; height: 50px; background-color: ${data.themeColor || '#1e293b'}; border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-          .title { font-size: 32px; font-weight: 900; letter-spacing: -1px; color: ${data.themeColor || '#333'}; margin-bottom: 5px; }
+          .title { font-size: 42px; font-weight: 900; letter-spacing: -1px; color: ${data.themeColor || '#333'}; margin-bottom: 5px; }
           .invoice-meta { display: flex; align-items: center; gap: 10px; }
-          .invoice-number { color: #94a3b8; font-weight: bold; font-size: 14px; }
-          .status-badge { background-color: ${statusColor}; color: ${statusTextColor}; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+          .invoice-number { color: #94a3b8; font-weight: bold; font-size: 16px; }
+          .status-badge { background-color: ${statusColor}; color: ${statusTextColor}; padding: 6px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; text-transform: uppercase; display: inline-block; }
 
-          .sender-details { text-align: right; font-size: 11px; color: #64748b; line-height: 1.5; }
-          .sender-name { font-weight: bold; font-size: 14px; color: #1e293b; margin-bottom: 4px; }
+          .sender-details { text-align: right; font-size: 13px; color: #64748b; line-height: 1.5; }
+          .sender-name { font-weight: bold; font-size: 16px; color: #1e293b; margin-bottom: 4px; }
 
           .billing-grid { display: flex; justify-content: space-between; margin-bottom: 40px; }
-          .bill-label { font-size: 10px; font-weight: 900; color: #cbd5e1; margin-bottom: 5px; text-transform: uppercase; }
-          .client-name { font-size: 16px; font-weight: bold; color: #1e293b; }
-          .client-details { font-size: 12px; color: #64748b; margin-top: 2px; }
-          .date-val { font-size: 13px; font-weight: 700; color: #1e293b; }
+          .bill-label { font-size: 12px; font-weight: 900; color: #cbd5e1; margin-bottom: 5px; text-transform: uppercase; }
+          .client-name { font-size: 18px; font-weight: bold; color: #1e293b; }
+          .client-details { font-size: 14px; color: #64748b; margin-top: 2px; }
+          .date-val { font-size: 15px; font-weight: 700; color: #1e293b; }
 
           table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-          th { text-align: left; border-bottom: 2px solid #f1f5f9; padding: 12px 0; color: #94a3b8; font-size: 10px; font-weight: 900; text-transform: uppercase; }
-          td { border-bottom: 1px solid #f8fafc; padding: 12px 0; font-size: 13px; color: #334155; }
+          th { text-align: left; border-bottom: 2px solid #f1f5f9; padding: 12px 8px; color: #94a3b8; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+          td { border-bottom: 1px solid #f8fafc; padding: 12px 8px; font-size: 14px; color: #334155; }
           .td-desc { font-weight: 700; }
           .td-qty { text-align: center; color: #64748b; }
           .td-total { text-align: right; font-weight: bold; color: #1e293b; }
 
           .total-section { display: flex; flex-direction: column; align-items: flex-end; margin-top: 20px; }
-          .total-row { display: flex; justify-content: space-between; width: 250px; padding: 4px 0; }
-          .total-label { font-size: 12px; color: #94a3b8; }
-          .total-val { font-size: 12px; font-weight: bold; color: #334155; }
+          .total-row { display: flex; justify-content: space-between; width: 300px; padding: 6px 0; }
+          .total-label { font-size: 14px; color: #94a3b8; }
+          .total-val { font-size: 14px; font-weight: bold; color: #334155; }
           .discount-row { color: #ef4444; }
-          .grand-total { border-top: 1px solid #f1f5f9; margin-top: 8px; padding-top: 8px; }
-          .grand-total .total-label { font-size: 14px; font-weight: bold; color: #1e293b; }
-          .grand-total .total-val { font-size: 16px; font-weight: 900; color: #1e293b; }
+          .grand-total { border-top: 2px solid #f1f5f9; margin-top: 12px; padding-top: 12px; }
+          .grand-total .total-label { font-size: 16px; font-weight: bold; color: #1e293b; }
+          .grand-total .total-val { font-size: 24px; font-weight: 900; color: #1e293b; }
 
-          .balance-box { background-color: #f8fafc; padding: 12px; border-radius: 12px; width: 250px; margin-top: 20px; }
-          .balance-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-          .paid-label { font-size: 10px; font-weight: bold; color: #10b981; text-transform: uppercase; }
-          .paid-val { font-size: 11px; font-weight: bold; color: #10b981; }
-          .due-row { border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 5px; }
-          .due-label { font-size: 12px; font-weight: 900; color: #1e293b; text-transform: uppercase; }
-          .due-val { font-size: 18px; font-weight: 900; color: ${data.themeColor || '#333'}; }
+          .balance-box { background-color: #f8fafc; padding: 16px; border-radius: 12px; width: 300px; margin-top: 25px; }
+          .balance-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+          .paid-label { font-size: 12px; font-weight: bold; color: #10b981; text-transform: uppercase; }
+          .paid-val { font-size: 13px; font-weight: bold; color: #10b981; }
+          .due-row { border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 8px; }
+          .due-label { font-size: 14px; font-weight: 900; color: #1e293b; text-transform: uppercase; }
+          .due-val { font-size: 22px; font-weight: 900; color: ${data.themeColor || '#333'}; }
 
-          .signature { margin-top: 60px; text-align: right; }
-          .sig-img { width: 120px; height: 60px; object-fit: contain; }
-          .sig-line { border-top: 1px solid #cbd5e1; width: 150px; display: inline-block; margin-top: 5px; }
-          .sig-sub { font-size: 9px; color: #94a3b8; font-weight: bold; margin-top: 4px; }
+          .signature { margin-top: 80px; text-align: right; }
+          .sig-img { width: 150px; height: 75px; object-fit: contain; }
+          .sig-line { border-top: 1px solid #cbd5e1; width: 200px; display: inline-block; margin-top: 10px; }
+          .sig-sub { font-size: 11px; color: #94a3b8; font-weight: bold; margin-top: 6px; }
         </style>
       </head>
       <body>
@@ -188,12 +186,6 @@ const generateInvoiceHTML = (data: InvoiceData) => {
           <div class="total-row discount-row">
             <span class="total-label" style="color: #ef4444;">Savings</span>
             <span class="total-val" style="color: #ef4444;">-${data.currency}${totalDiscount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-          </div>
-          ` : ''}
-          ${(data.taxRate || 0) > 0 ? `
-          <div class="total-row">
-            <span class="total-label">Tax (${data.taxRate}%)</span>
-            <span class="total-val">${data.currency}${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
           </div>
           ` : ''}
           <div class="total-row grand-total">
@@ -332,8 +324,7 @@ export default function App() {
       return acc + Math.max(0, itemTotal);
     }, 0);
 
-    const taxAmount = subtotal * (invoiceData.taxRate / 100);
-    const total = subtotal + taxAmount;
+    const total = subtotal;
 
     const record: SavedInvoice = {
       ...invoiceData,
