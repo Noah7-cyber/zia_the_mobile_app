@@ -50,6 +50,12 @@ const NumericInput = ({ value, onChange, style, placeholder, ...props }: any) =>
 export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) => {
   const [showInventoryPicker, setShowInventoryPicker] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredInventory = inventory.filter(item =>
+    (item.name && item.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const updateField = (field: keyof InvoiceData, value: any) => {
     onChange({ ...data, [field]: value });
@@ -88,8 +94,16 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
                 <Text style={styles.closeText}>Close</Text>
               </TouchableOpacity>
             </View>
+
+            <TextInput
+              placeholder="Search items..."
+              style={[styles.input, { marginBottom: 15 }]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+
             <FlatList
-              data={inventory}
+              data={filteredInventory}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity 
@@ -332,6 +346,28 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
             })()}</Text>
           </View>
         </View>
+      </View>
+
+      {/* Notes & Terms */}
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionTitleRow}>
+          <TagIcon size={14} color="#64748b" />
+          <Text style={styles.sectionLabel}>Notes & Terms</Text>
+        </View>
+        <TextInput
+          placeholder="Notes (e.g. Thank you for your business)"
+          style={[styles.input, { marginBottom: 10, height: 60, textAlignVertical: 'top' }]}
+          multiline
+          value={data.notes || ''}
+          onChangeText={(val) => updateField('notes', val)}
+        />
+        <TextInput
+          placeholder="Terms & Conditions"
+          style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+          multiline
+          value={data.terms || ''}
+          onChangeText={(val) => updateField('terms', val)}
+        />
       </View>
 
       {/* Signature Section */}
