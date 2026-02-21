@@ -315,6 +315,8 @@ export default function App() {
         themeColor: profileToUse.themeColor || DEFAULT_INVOICE.themeColor,
         logo: profileToUse.logo || DEFAULT_INVOICE.logo,
         signature: profileToUse.signature || DEFAULT_INVOICE.signature,
+        notes: profileToUse.notes || DEFAULT_INVOICE.notes,
+        terms: profileToUse.terms || DEFAULT_INVOICE.terms,
         date: new Date().toISOString().split('T')[0],
       });
       setActiveTab('edit');
@@ -361,6 +363,8 @@ export default function App() {
        themeColor: invoiceData.themeColor,
        logo: invoiceData.logo,
        signature: invoiceData.signature,
+       notes: invoiceData.notes,
+       terms: invoiceData.terms,
     };
     setBusinessProfile(newProfile);
     AsyncStorage.setItem('businessProfile', JSON.stringify(newProfile));

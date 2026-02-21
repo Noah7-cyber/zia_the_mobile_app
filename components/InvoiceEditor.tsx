@@ -90,7 +90,10 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Quick Select</Text>
-              <TouchableOpacity onPress={() => setShowInventoryPicker(false)}>
+              <TouchableOpacity onPress={() => {
+                setShowInventoryPicker(false);
+                setSearchQuery('');
+              }}>
                 <Text style={styles.closeText}>Close</Text>
               </TouchableOpacity>
             </View>
@@ -119,6 +122,7 @@ export const InvoiceEditor: React.FC<Props> = ({ data, onChange, inventory }) =>
                     };
                     onChange({ ...data, items: [...data.items, newItem] });
                     setShowInventoryPicker(false);
+                    setSearchQuery('');
                   }}
                 >
                   <View>
