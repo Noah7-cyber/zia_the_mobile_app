@@ -19,9 +19,7 @@ export const DEFAULT_INVOICE: InvoiceData = {
   senderDetails: '123 Fashion Ave\nNew York, NY 10001\ncontact@ziaroyale.com',
   clientName: '',
   clientDetails: '',
-  items: [
-    { id: '1', description: '', quantity: 1, price: 0, discount: 0, discountType: 'fixed' },
-  ],
+  items: [],
   notes: 'Thank you for your business.',
   terms: '1. Payment is due within 7 days of invoice date.\n2. Alterations are subject to a separate fitting fee.\n3. Custom garments are non-refundable after fabric is cut.',
   currency: '₦',

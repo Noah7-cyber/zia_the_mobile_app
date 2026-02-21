@@ -115,6 +115,11 @@ const generateInvoiceHTML = (data: InvoiceData) => {
           .sig-img { width: 150px; height: 75px; object-fit: contain; }
           .sig-line { border-top: 1px solid #cbd5e1; width: 200px; display: inline-block; margin-top: 10px; }
           .sig-sub { font-size: 11px; color: #94a3b8; font-weight: bold; margin-top: 6px; }
+
+          .footer-section { margin-top: 40px; border-top: 2px solid #f8fafc; padding-top: 20px; }
+          .note-block { margin-bottom: 20px; }
+          .footer-label { font-size: 10px; font-weight: 900; color: #cbd5e1; margin-bottom: 5px; text-transform: uppercase; }
+          .footer-text { font-size: 11px; color: #64748b; line-height: 1.5; white-space: pre-wrap; }
         </style>
       </head>
       <body>
@@ -203,6 +208,22 @@ const generateInvoiceHTML = (data: InvoiceData) => {
                <span class="due-val">${data.currency}${balanceDue.toLocaleString()}</span>
              </div>
           </div>
+        </div>
+
+        <div class="footer-section">
+          ${data.notes ? `
+            <div class="note-block">
+              <div class="footer-label">NOTES</div>
+              <div class="footer-text">${data.notes}</div>
+            </div>
+          ` : ''}
+
+          ${data.terms ? `
+            <div class="note-block">
+              <div class="footer-label">TERMS & CONDITIONS</div>
+              <div class="footer-text">${data.terms}</div>
+            </div>
+          ` : ''}
         </div>
 
         ${data.signature ? `

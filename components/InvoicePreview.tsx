@@ -141,6 +141,25 @@ export const InvoicePreview: React.FC<Props> = ({ data }) => {
           </View>
         </View>
 
+        {/* Notes & Terms */}
+        {(data.notes || data.terms) && (
+          <View style={styles.footerSection}>
+            {data.notes ? (
+              <View style={styles.noteBlock}>
+                <Text style={styles.footerLabel}>NOTES</Text>
+                <Text style={styles.footerText}>{data.notes}</Text>
+              </View>
+            ) : null}
+
+            {data.terms ? (
+              <View style={[styles.noteBlock, { marginTop: 15 }]}>
+                <Text style={styles.footerLabel}>TERMS & CONDITIONS</Text>
+                <Text style={styles.footerText}>{data.terms}</Text>
+              </View>
+            ) : null}
+          </View>
+        )}
+
         {/* Signature */}
         {data.signature && (
           <View style={styles.signatureContainer}>
@@ -216,5 +235,9 @@ const styles = StyleSheet.create({
   signatureContainer: { marginTop: 40, alignItems: 'flex-end' },
   signatureImage: { width: 120, height: 60 },
   signatureLine: { borderTopWidth: 1, borderTopColor: '#cbd5e1', width: 150, marginTop: 5 },
-  signatureSub: { fontSize: 9, color: '#94a3b8', fontWeight: 'bold', marginTop: 4 }
+  signatureSub: { fontSize: 9, color: '#94a3b8', fontWeight: 'bold', marginTop: 4 },
+  footerSection: { marginTop: 40, borderTopWidth: 2, borderTopColor: '#f8fafc', paddingTop: 20 },
+  noteBlock: {},
+  footerLabel: { fontSize: 10, fontWeight: '900', color: '#cbd5e1', marginBottom: 5 },
+  footerText: { fontSize: 11, color: '#64748b', lineHeight: 16 }
 });
